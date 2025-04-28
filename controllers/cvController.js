@@ -1,6 +1,5 @@
-const { db } = require('../config/firebase'); // Impor Firestore instance
+const { db, bucket } = require('../config/firebase'); // Impor Firestore dan Storage instance
 
-// Fungsi untuk menangani pengiriman CV
 const submitCV = async (req, res) => {
     try {
         const userId = req.user.uid; // Ambil userId dari token Firebase
@@ -11,6 +10,24 @@ const submitCV = async (req, res) => {
             return res.status(400).json({ success: false, message: 'Personal info with name is required' });
         }
 
+        let photoUrl = null;
+
+        // Periksa apakah file diupload
+        if (req.file) {
+            const fileName = `photos/${Date.now()}-${req.file.originalname}`;
+            const file = bucket.file(fileName);
+
+            // Upload file ke Firebase Storage
+            await file.save(req.file.buffer, {
+                metadata: {
+                    contentType: req.file.mimetype
+                }
+            });
+
+            // Dapatkan URL publik untuk file
+            photoUrl = `https://storage.googleapis.com/${bucket.name}/${fileName}`;
+        }
+
         // Buat ID unik untuk CV
         const cvId = db.collection('cvs').doc().id;
 
@@ -18,6 +35,7 @@ const submitCV = async (req, res) => {
         const newCV = {
             userId,
             cvId,
+            photoUrl, // Tambahkan URL foto ke data CV
             ...cvData,
             createdAt: new Date().toISOString()
         };
