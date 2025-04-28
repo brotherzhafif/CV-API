@@ -1,10 +1,10 @@
 const admin = require('firebase-admin');
 
-// Inisialisasi Firebase Admin SDK
-const serviceAccount = require('../config/key.json'); // Path ke key.json Anda
-admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount),
-});
+// // Inisialisasi Firebase Admin SDK
+// const serviceAccount = require('../config/key.json'); // Path ke key.json Anda
+// admin.initializeApp({
+//     credential: admin.credential.cert(serviceAccount),
+// });
 
 // Middleware untuk memverifikasi token
 const verifyToken = async (req, res, next) => {
