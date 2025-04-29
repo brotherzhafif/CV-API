@@ -9,7 +9,7 @@ router.get('/', (res) => {
 });
 
 // Endpoint untuk mengirim CV (hanya bisa diakses jika login)
-router.post('/submit-cv', upload.single('photo'), verifyToken, submitCV);
+router.post('/submit-cv', upload.single('cvFile'), verifyToken, submitCV);
 router.get('/get-cvs', verifyToken, getCVs);
 
 module.exports = router;

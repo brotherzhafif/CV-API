@@ -1,32 +1,33 @@
 const { db, bucket } = require('../config/firebase'); // Impor Firestore dan Storage instance
+const { scoreCV } = require('../utils/cvScoring');
 
 const submitCV = async (req, res) => {
     try {
-        const userId = req.user.uid; // Ambil userId dari token Firebase
-        const cvData = req.body; // Data CV dari request body
+        const userId = req.user.uid;
 
-        // Validasi input
-        if (!cvData.personal_info || !cvData.personal_info.name) {
-            return res.status(400).json({ success: false, message: 'Personal info with name is required' });
-        }
-
-        let photoUrl = null;
-
-        // Periksa apakah file diupload
-        if (req.file) {
-            const fileName = `photos/${Date.now()}-${req.file.originalname}`;
-            const file = bucket.file(fileName);
-
-            // Upload file ke Firebase Storage
-            await file.save(req.file.buffer, {
-                metadata: {
-                    contentType: req.file.mimetype
-                }
+        // Periksa apakah file PDF diupload
+        if (!req.file) {
+            return res.status(400).json({
+                success: false,
+                message: 'File PDF CV diperlukan'
             });
-
-            // Dapatkan URL publik untuk file
-            photoUrl = `https://storage.googleapis.com/${bucket.name}/${fileName}`;
         }
+
+        // Upload PDF ke Firebase Storage
+        const fileName = `cvs/${userId}/${Date.now()}-${req.file.originalname}`;
+        const file = bucket.file(fileName);
+
+        await file.save(req.file.buffer, {
+            metadata: {
+                contentType: 'application/pdf'
+            }
+        });
+
+        // Dapatkan URL publik untuk file
+        const pdfUrl = `https://storage.googleapis.com/${bucket.name}/${fileName}`;
+
+        // Lakukan scoring CV
+        const scoringResult = await scoreCV(req.file.buffer);
 
         // Buat ID unik untuk CV
         const cvId = db.collection('cvs').doc().id;
@@ -35,16 +36,25 @@ const submitCV = async (req, res) => {
         const newCV = {
             userId,
             cvId,
-            photoUrl, // Tambahkan URL foto ke data CV
-            ...cvData,
+            pdfUrl,
+            fileName: req.file.originalname,
+            scoring: scoringResult,
             createdAt: new Date().toISOString()
         };
 
         await db.collection('cvs').doc(cvId).set(newCV);
 
-        res.status(201).json({ success: true, message: 'CV submitted successfully', cv: newCV });
+        res.status(201).json({
+            success: true,
+            message: 'CV berhasil diupload dan dinilai',
+            cv: newCV
+        });
     } catch (error) {
-        res.status(500).json({ success: false, message: 'Error submitting CV', error: error.message });
+        res.status(500).json({
+            success: false,
+            message: 'Error dalam memproses CV',
+            error: error.message
+        });
     }
 };
 

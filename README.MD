@@ -1,10 +1,17 @@
-# Hackaton_CV - Ruang Talenta CV Assessments API Documentation
+# **CV API Documentation**
 
-## Authentication
+## **Base URL**
 
-Semua endpoint membutuhkan **Bearer Token** di header `Authorization`.
+- **Local**: `http://localhost:5000`
+- **Production**: `https://cv-api-six.vercel.app`
 
-Contoh:
+---
+
+## **Authentication**
+
+Semua endpoint yang membutuhkan autentikasi harus menyertakan **Bearer Token** di header `Authorization`.
+
+**Contoh Header**:
 
 ```
 Authorization: Bearer <token>
@@ -12,151 +19,237 @@ Authorization: Bearer <token>
 
 ---
 
-## Auth Routes
+## **Auth Routes**
 
-### POST `/auth/register`
+### **1. POST `/auth/register`**
 
-Register akun baru.
+Mendaftarkan pengguna baru.
 
-- **Headers:**
-  - Authorization: Bearer `<token>`
-- **Body (JSON):**
+- **Headers**:
+  - `Content-Type: application/json`
+- **Body**:
   ```json
   {
-    "email": "raja@example.com",
-    "password": "woylah1234"
+    "email": "user@example.com",
+    "password": "securepassword123"
   }
   ```
-- **Response:**  
-  Berhasil register user baru.
+- **Response**:
+  - **Success**:
+    ```json
+    {
+      "success": true,
+      "message": "Registrasi berhasil",
+      "user": {
+        "id": "firebase-user-id",
+        "email": "user@example.com"
+      }
+    }
+    ```
+  - **Error**:
+    ```json
+    {
+      "success": false,
+      "message": "Terjadi kesalahan saat registrasi",
+      "error": "Error message"
+    }
+    ```
 
 ---
 
-### POST `/auth/login`
+### **2. POST `/auth/login`**
 
-Login dan mendapatkan token.
+Login pengguna dan mendapatkan token autentikasi.
 
-- **Headers:**
-  - Authorization: Bearer `<token>`
-- **Body (JSON):**
+- **Headers**:
+  - `Content-Type: application/json`
+- **Body**:
   ```json
   {
-    "email": "raja@example.com",
-    "password": "woylah1234"
+    "email": "user@example.com",
+    "password": "securepassword123"
   }
   ```
-- **Response:**  
-  Token untuk akses API selanjutnya.
+- **Response**:
+  - **Success**:
+    ```json
+    {
+      "success": true,
+      "message": "Login berhasil",
+      "token": "firebase-token",
+      "user": {
+        "id": "firebase-user-id",
+        "email": "user@example.com"
+      }
+    }
+    ```
+  - **Error**:
+    ```json
+    {
+      "success": false,
+      "message": "Email atau password salah",
+      "error": "Error message"
+    }
+    ```
 
 ---
 
-## CV Routes
+## **CV Routes**
 
-### POST `/api/submit-cv`
+### **1. POST `/api/submit-cv`**
 
-Submit CV lengkap.
+Mengunggah CV dalam format PDF dan melakukan penilaian otomatis.
 
-- **Headers:**
-  - Authorization: Bearer `<token>`
-- **Body (JSON) contoh:**
+- **Headers**:
+  - `Authorization: Bearer <token>`
+  - `Content-Type: multipart/form-data`
+- **Body**:
+  - Field file: `cvFile` (PDF file)
+- **Response**:
+  - **Success**:
+    ```json
+    {
+      "success": true,
+      "message": "CV berhasil diupload dan dinilai",
+      "cv": {
+        "userId": "firebase-user-id",
+        "cvId": "unique-cv-id",
+        "pdfUrl": "https://storage.googleapis.com/cv-generator-maxy.appspot.com/cvs/user-id/timestamp-filename.pdf",
+        "fileName": "filename.pdf",
+        "scoring": {
+          "scores": {
+            "profileSummary": 10,
+            "cvLength": 10,
+            "skills": 10,
+            "format": 15,
+            "keywords": 15,
+            "professionalContacts": 10
+          },
+          "totalScore": 70,
+          "details": {
+            "pageCount": 2,
+            "wordCount": 500
+          }
+        },
+        "createdAt": "2025-04-29T12:00:00.000Z"
+      }
+    }
+    ```
+  - **Error**:
+    ```json
+    {
+      "success": false,
+      "message": "Error dalam memproses CV",
+      "error": "Error message"
+    }
+    ```
+
+---
+
+### **2. GET `/api/get-cvs`**
+
+Mengambil semua CV yang diunggah oleh pengguna yang sedang login.
+
+- **Headers**:
+  - `Authorization: Bearer <token>`
+- **Response**:
+  - **Success**:
+    ```json
+    {
+      "success": true,
+      "cvs": [
+        {
+          "userId": "firebase-user-id",
+          "cvId": "unique-cv-id",
+          "pdfUrl": "https://storage.googleapis.com/cv-generator-maxy.appspot.com/cvs/user-id/timestamp-filename.pdf",
+          "fileName": "filename.pdf",
+          "scoring": {
+            "scores": {
+              "profileSummary": 10,
+              "cvLength": 10,
+              "skills": 10,
+              "format": 15,
+              "keywords": 15,
+              "professionalContacts": 10
+            },
+            "totalScore": 70,
+            "details": {
+              "pageCount": 2,
+              "wordCount": 500
+            }
+          },
+          "createdAt": "2025-04-29T12:00:00.000Z"
+        }
+      ]
+    }
+    ```
+  - **Error**:
+    ```json
+    {
+      "success": false,
+      "message": "Error fetching CVs",
+      "error": "Error message"
+    }
+    ```
+
+---
+
+## **Error Handling**
+
+### **1. Error: Token Tidak Valid**
+
+- **Status**: `401 Unauthorized`
+- **Response**:
   ```json
   {
-    "personal_info": {
-      "name": "John Doe",
-      "phone": "+628123456789",
-      "email": "john.doe@email.com",
-      "address": "Jakarta, Indonesia",
-      "linkedin": "https://linkedin.com/in/johndoe",
-      "github": "https://github.com/johndoe",
-      "website": "https://johndoe.dev"
-    },
-    "professional_summary": "Experienced web developer with 3+ years building scalable apps using React and Laravel.",
-    "work_experience": [
-      {
-        "company": "PT. Maju Terus",
-        "position": "Software Engineer",
-        "start_date": "2022-01",
-        "end_date": "2024-04",
-        "description": "Developed and maintained e-commerce websites using Laravel and React. Led a team of 5 junior developers."
-      },
-      {
-        "company": "Startup Keren",
-        "position": "Frontend Developer",
-        "start_date": "2020-06",
-        "end_date": "2021-12",
-        "description": "Built responsive web applications and improved page speed by 30%."
-      }
-    ],
-    "education": [
-      {
-        "institution": "Universitas Teknologi Indonesia",
-        "degree": "Bachelor of Information Systems",
-        "start_year": 2019,
-        "end_year": 2023,
-        "gpa": 3.73
-      }
-    ],
-    "skills": ["React", "Laravel", "Tailwind CSS", "MongoDB", "Node.js", "Git"],
-    "certifications": [
-      {
-        "title": "AWS Certified Cloud Practitioner",
-        "issuer": "Amazon Web Services",
-        "date": "2023-08"
-      },
-      {
-        "title": "Meta Front-End Developer Certificate",
-        "issuer": "Coursera",
-        "date": "2024-01"
-      }
-    ],
-    "projects": [
-      {
-        "name": "Cakrawidia",
-        "description": "A Q&A and knowledge-sharing platform built with Laravel and React.",
-        "tech_stack": ["Laravel", "React", "Tailwind", "Aiven"]
-      },
-      {
-        "name": "GreenGo",
-        "description": "Sustainable transport application promoting eco-friendly mobility.",
-        "tech_stack": ["Flutter", "Firebase"]
-      }
-    ],
-    "awards": [
-      {
-        "title": "Best Project Award",
-        "organization": "Techcomfest PCC",
-        "year": 2025
-      }
-    ],
-    "languages": [
-      {
-        "language": "English",
-        "level": "Professional Working Proficiency"
-      },
-      {
-        "language": "Indonesian",
-        "level": "Native"
-      }
-    ]
+    "success": false,
+    "message": "Token tidak valid.",
+    "error": "Error message"
   }
   ```
-- **Response:**  
-  Menyimpan data CV user ke database.
+
+### **2. Error: File Tidak Ditemukan**
+
+- **Status**: `400 Bad Request`
+- **Response**:
+  ```json
+  {
+    "success": false,
+    "message": "File PDF CV diperlukan"
+  }
+  ```
+
+### **3. Error: Bucket Tidak Ada**
+
+- **Status**: `500 Internal Server Error`
+- **Response**:
+  ```json
+  {
+    "success": false,
+    "message": "Error dalam memproses CV",
+    "error": "The specified bucket does not exist."
+  }
+  ```
 
 ---
 
-### GET `/api/get-cvs`
+## **Environment Variables**
 
-Mengambil semua CV milik user yang login.
+Pastikan file .env Anda memiliki variabel berikut:
 
-- **Headers:**
-  - Authorization: Bearer `<token>`
-- **Response:**  
-  List data CV user.
+```env
+FIREBASE_PROJECT_ID=cv-generator-maxy
+FIREBASE_CLIENT_EMAIL=your-firebase-client-email
+FIREBASE_PRIVATE_KEY=your-firebase-private-key
+```
 
 ---
 
-# Notes
+## **Dependencies**
 
-- Semua request harus menggunakan **Authorization Bearer Token**.
-- Pastikan mengisi semua field JSON saat submit CV untuk menghindari error validasi.
+- **Express**: Framework untuk membuat server.
+- **Firebase Admin SDK**: Untuk autentikasi dan penyimpanan file.
+- **Multer**: Untuk menangani unggahan file.
+- **PDF-Parse**: Untuk membaca dan menganalisis file PDF.
+
+---
