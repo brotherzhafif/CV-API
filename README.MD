@@ -31,7 +31,8 @@ Mendaftarkan pengguna baru.
   ```json
   {
     "email": "user@example.com",
-    "password": "securepassword123"
+    "password": "securepassword123",
+    "username": "user123"
   }
   ```
 - **Response**:
@@ -42,7 +43,8 @@ Mendaftarkan pengguna baru.
       "message": "Registrasi berhasil",
       "user": {
         "id": "firebase-user-id",
-        "email": "user@example.com"
+        "email": "user@example.com",
+        "username": "user123"
       }
     }
     ```
@@ -64,12 +66,20 @@ Login pengguna dan mendapatkan token autentikasi.
 - **Headers**:
   - `Content-Type: application/json`
 - **Body**:
-  ```json
-  {
-    "email": "user@example.com",
-    "password": "securepassword123"
-  }
-  ```
+  - **Login dengan Email**:
+    ```json
+    {
+      "email": "user@example.com",
+      "password": "securepassword123"
+    }
+    ```
+  - **Login dengan Username**:
+    ```json
+    {
+      "username": "user123",
+      "password": "securepassword123"
+    }
+    ```
 - **Response**:
   - **Success**:
     ```json
@@ -79,7 +89,8 @@ Login pengguna dan mendapatkan token autentikasi.
       "token": "firebase-token",
       "user": {
         "id": "firebase-user-id",
-        "email": "user@example.com"
+        "email": "user@example.com",
+        "username": "user123"
       }
     }
     ```
@@ -87,7 +98,38 @@ Login pengguna dan mendapatkan token autentikasi.
     ```json
     {
       "success": false,
-      "message": "Email atau password salah",
+      "message": "Email, username, atau password salah",
+      "error": "Error message"
+    }
+    ```
+
+---
+
+### **3. POST `/auth/google-login`**
+
+Login pengguna menggunakan Google.
+
+- **Headers**:
+  - `Content-Type: application/json`
+- **Response**:
+  - **Success**:
+    ```json
+    {
+      "success": true,
+      "message": "Login dengan Google berhasil",
+      "token": "firebase-token",
+      "user": {
+        "id": "firebase-user-id",
+        "email": "user@example.com",
+        "displayName": "User Name"
+      }
+    }
+    ```
+  - **Error**:
+    ```json
+    {
+      "success": false,
+      "message": "Gagal login dengan Google",
       "error": "Error message"
     }
     ```
@@ -118,16 +160,16 @@ Mengunggah CV dalam format PDF dan melakukan penilaian otomatis.
         "fileName": "filename.pdf",
         "scoring": {
           "scores": {
-            "profileSummary": 10,
-            "cvLength": 10,
-            "skills": 10,
+            "profileSummary": 20,
+            "cvLength": 20,
+            "skills": 15,
             "format": 15,
-            "keywords": 15,
+            "keywords": 20,
             "professionalContacts": 10
           },
-          "totalScore": 70,
+          "totalScore": 100,
           "details": {
-            "pageCount": 2,
+            "pageCount": 3,
             "wordCount": 500
           }
         },
@@ -165,16 +207,16 @@ Mengambil semua CV yang diunggah oleh pengguna yang sedang login.
           "fileName": "filename.pdf",
           "scoring": {
             "scores": {
-              "profileSummary": 10,
-              "cvLength": 10,
-              "skills": 10,
+              "profileSummary": 20,
+              "cvLength": 20,
+              "skills": 15,
               "format": 15,
-              "keywords": 15,
+              "keywords": 20,
               "professionalContacts": 10
             },
-            "totalScore": 70,
+            "totalScore": 100,
             "details": {
-              "pageCount": 2,
+              "pageCount": 3,
               "wordCount": 500
             }
           },
@@ -251,5 +293,3 @@ FIREBASE_PRIVATE_KEY=your-firebase-private-key
 - **Firebase Admin SDK**: Untuk autentikasi dan penyimpanan file.
 - **Multer**: Untuk menangani unggahan file.
 - **PDF-Parse**: Untuk membaca dan menganalisis file PDF.
-
----

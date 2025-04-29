@@ -11,7 +11,7 @@ const scoringRules = {
     checkCVLength: async (buffer) => {
         try {
             const data = await pdf(buffer);
-            return data.numpages > 2 ? 20 : 0; // Tambahkan 20 poin jika halaman > 2
+            return data.numpages > 1 ? 20 : 0; // Tambahkan 20 poin jika halaman > 2
         } catch (error) {
             console.error('Error checking CV length:', error);
             return 0;
