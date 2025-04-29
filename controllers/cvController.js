@@ -23,8 +23,11 @@ const submitCV = async (req, res) => {
             }
         });
 
-        // Dapatkan URL publik untuk file
-        const pdfUrl = `https://storage.googleapis.com/${bucket.name}/${fileName}`;
+        // Buat signed URL untuk file
+        const [signedUrl] = await file.getSignedUrl({
+            action: 'read',
+            expires: Date.now() + 60 * 60 * 1000 // URL berlaku selama 1 jam
+        });
 
         // Lakukan scoring CV
         const scoringResult = await scoreCV(req.file.buffer);
@@ -36,7 +39,7 @@ const submitCV = async (req, res) => {
         const newCV = {
             userId,
             cvId,
-            pdfUrl,
+            pdfUrl: signedUrl, // Gunakan signed URL
             fileName: req.file.originalname,
             scoring: scoringResult,
             createdAt: new Date().toISOString()
@@ -58,7 +61,6 @@ const submitCV = async (req, res) => {
     }
 };
 
-// Fungsi untuk mendapatkan semua CV milik pengguna
 const getCVs = async (req, res) => {
     try {
         const userId = req.user.uid; // Ambil userId dari token Firebase
@@ -70,7 +72,23 @@ const getCVs = async (req, res) => {
             return res.status(200).json({ success: true, cvs: [] });
         }
 
-        const cvs = snapshot.docs.map(doc => doc.data());
+        const cvs = await Promise.all(
+            snapshot.docs.map(async (doc) => {
+                const cv = doc.data();
+
+                // Buat signed URL baru untuk setiap CV
+                const file = bucket.file(cv.fileName);
+                const [signedUrl] = await file.getSignedUrl({
+                    action: 'read',
+                    expires: Date.now() + 60 * 60 * 1000 // URL berlaku selama 1 jam
+                });
+
+                return {
+                    ...cv,
+                    pdfUrl: signedUrl // Perbarui URL dengan signed URL
+                };
+            })
+        );
 
         res.status(200).json({ success: true, cvs });
     } catch (error) {
@@ -78,7 +96,6 @@ const getCVs = async (req, res) => {
     }
 };
 
-// Ekspor fungsi
 module.exports = {
     submitCV,
     getCVs,
