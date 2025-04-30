@@ -78,14 +78,9 @@ const getCVs = async (req, res) => {
 
                 // Buat signed URL baru untuk setiap CV
                 const file = bucket.file(cv.fileName);
-                const [signedUrl] = await file.getSignedUrl({
-                    action: 'read',
-                    expires: Date.now() + 24 * 60 * 60 * 1000 // URL berlaku selama 1 jam
-                });
 
                 return {
                     ...cv,
-                    pdfUrl: signedUrl // Perbarui URL dengan signed URL
                 };
             })
         );
