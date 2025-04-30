@@ -26,7 +26,7 @@ const submitCV = async (req, res) => {
         // Buat signed URL untuk file
         const [signedUrl] = await file.getSignedUrl({
             action: 'read',
-            expires: Date.now() + 60 * 60 * 1000 // URL berlaku selama 1 jam
+            expires: Date.now() + 24 * 60 * 60 * 1000 // URL berlaku selama 1 jam
         });
 
         // Lakukan scoring CV
@@ -80,7 +80,7 @@ const getCVs = async (req, res) => {
                 const file = bucket.file(cv.fileName);
                 const [signedUrl] = await file.getSignedUrl({
                     action: 'read',
-                    expires: Date.now() + 60 * 60 * 1000 // URL berlaku selama 1 jam
+                    expires: Date.now() + 24 * 60 * 60 * 1000 // URL berlaku selama 1 jam
                 });
 
                 return {
