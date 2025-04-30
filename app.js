@@ -13,6 +13,11 @@ app.use(express.json());
 app.use('/api', cvRoutes);
 app.use('/auth', authRoutes);
 
-// Start server
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+// Ekspor handler untuk Vercel
+module.exports = app;
+
+// Start server (hanya untuk pengembangan lokal)
+if (require.main === module) {
+    const PORT = process.env.PORT || 5000;
+    app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+}
