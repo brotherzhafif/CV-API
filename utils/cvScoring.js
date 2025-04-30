@@ -1,4 +1,6 @@
 const pdf = require('pdf-parse');
+const { PDFDocument } = require('pdf-lib');
+
 
 const scoringRules = {
     // Rule 1: Memiliki ringkasan profil (20 poin)
@@ -68,14 +70,29 @@ const scoringRules = {
     }
 };
 
+
+const repairPDF = async (pdfBuffer) => {
+    try {
+        const pdfDoc = await PDFDocument.load(pdfBuffer);
+        const repairedBuffer = await pdfDoc.save();
+        return repairedBuffer;
+    } catch (error) {
+        console.error('Error repairing PDF:', error.message);
+        throw new Error('Gagal memperbaiki file PDF.');
+    }
+};
+
 const scoreCV = async (pdfBuffer) => {
     try {
-        const data = await pdf(pdfBuffer);
+        // Perbaiki file PDF sebelum diproses
+        const repairedBuffer = await repairPDF(pdfBuffer);
+
+        const data = await pdf(repairedBuffer);
         const text = data.text;
 
         const scores = {
             profileSummary: scoringRules.hasProfileSummary(text),
-            cvLength: await scoringRules.checkCVLength(pdfBuffer),
+            cvLength: await scoringRules.checkCVLength(repairedBuffer),
             skills: scoringRules.hasSkills(text),
             format: scoringRules.checkFormat(text),
             keywords: scoringRules.checkKeywords(text),
@@ -93,8 +110,8 @@ const scoreCV = async (pdfBuffer) => {
             }
         };
     } catch (error) {
+        console.error('Error scoring CV:', error.message);
         throw new Error(`Error scoring CV: ${error.message}`);
     }
 };
-
 module.exports = { scoreCV };
