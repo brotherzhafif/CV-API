@@ -1,0 +1,7 @@
+# 1. Reset: Anggap SEMUA file di repo ini tidak perlu dihitung
+* linguist-vendored
+
+# 2. Whitelist: Hanya hitung file .dart di folder spesifik ini
+routes/** -linguist-vendored
+middleware/** -linguist-vendored
+controllers/** -linguist-vendored
